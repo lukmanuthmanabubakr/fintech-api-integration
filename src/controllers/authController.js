@@ -66,6 +66,7 @@ exports.registerUser = async (req, res, next) => {
   }
 };
 
+
 exports.loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -94,5 +95,80 @@ exports.loginUser = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+
+
+exports.getCustomer = async (req, res, next) => {
+  try {
+    const customerId = req.params.id;
+
+    const response = await bitnobAPI.get(`/customers/${customerId}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Customer fetched successfully",
+      customer: response.data.data,
+    });
+  } catch (err) {
+    console.error("Error fetching customer:", err.response?.data || err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch customer",
+      error: err.response?.data || err.message,
+    });
+  }
+};
+
+
+// ✅ Update Customer Controller
+exports.updateCustomer = async (req, res, next) => {
+  try {
+    const customerId = req.params.id;
+    const { firstName, lastName, email, phone, countryCode } = req.body;
+
+    // Call Bitnob API to update customer
+    const response = await bitnobAPI.put(`/customers/${customerId}`, {
+      firstName,
+      lastName,
+      email,
+      phone,
+      countryCode,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Customer successfully updated",
+      customer: response.data.data,
+    });
+  } catch (err) {
+    console.error("Error updating customer:", err.response?.data || err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update customer",
+      error: err.response?.data || err.message,
+    });
+  }
+};
+
+// ✅ List all customers
+exports.listCustomers = async (req, res, next) => {
+  try {
+    const response = await bitnobAPI.get("/customers/");
+
+    return res.status(200).json({
+      success: true,
+      message: "Customers successfully fetched",
+      customers: response.data.data.customers,
+      meta: response.data.data.meta || null, // Bitnob includes pagination meta sometimes
+    });
+  } catch (err) {
+    console.error("Error listing customers:", err.response?.data || err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch customers",
+      error: err.response?.data || err.message,
+    });
   }
 };

@@ -10,6 +10,11 @@ const userSchema = new mongoose.Schema(
     bitnobCustomerId: { type: String }, // 🔑 Bitnob customer
     bitnobWalletId: { type: String }, // (optional: for wallet later)
     walletId: { type: String }, // ✅ new field
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
   },
   { timestamps: true }
 );

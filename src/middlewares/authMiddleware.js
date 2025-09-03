@@ -23,9 +23,16 @@ exports.protect = async (req, res, next) => {
     } catch (err) {
       return res.status(401).json({ success: false, message: "Not authorized, token failed" });
     }
-  }
-
-  if (!token) {
+  } else {
     return res.status(401).json({ success: false, message: "Not authorized, no token" });
+  }
+};
+
+// ✅ Admin-only middleware
+exports.adminOnly = (req, res, next) => {
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    return res.status(403).json({ success: false, message: "Admins only" });
   }
 };
