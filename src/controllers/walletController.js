@@ -54,8 +54,6 @@ exports.generateAddress = async (req, res, next) => {
 };
 
 
-
-
 // ✅ List all addresses from Bitnob
 exports.listAddresses = async (req, res, next) => {
   try {
@@ -75,6 +73,31 @@ exports.listAddresses = async (req, res, next) => {
       success: true,
       message: "Successfully fetched all addresses",
       addresses,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ✅ Get recommended BTC fees
+exports.getRecommendedFees = async (req, res, next) => {
+  try {
+    const response = await bitnobAPI.get("/wallets/recommended-fees/btc");
+
+    const fees = response?.data?.data;
+
+    if (!fees) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to fetch recommended fees",
+        raw: response.data,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully fetched recommended BTC fees",
+      fees,
     });
   } catch (err) {
     next(err);

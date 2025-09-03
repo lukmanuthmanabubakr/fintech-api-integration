@@ -13,7 +13,9 @@ exports.registerUser = async (req, res, next) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ success: false, message: "User already exists" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -66,6 +68,42 @@ exports.registerUser = async (req, res, next) => {
   }
 };
 
+// exports.loginUser = async (req, res, next) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     if (!email || !password) {
+//       return res
+//         .status(400)
+//         .json({ message: "Please provide email and password" });
+//     }
+
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(400).json({ message: "Invalid credentials" });
+//     }
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res.status(400).json({ message: "Invalid credentials" });
+//     }
+
+//     res.status(201).json({
+//       success: true,
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         phone: user.phone,
+//         bitnobCustomerId: user.bitnobCustomerId,
+//       },
+//       token: generateToken(user._id),
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 
 exports.loginUser = async (req, res, next) => {
   try {
@@ -87,11 +125,29 @@ exports.loginUser = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token: generateToken(user._id),
+    // Generate JWT token
+    const token = generateToken(user._id);
+
+    // Send token as HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // only HTTPS in production
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Send response
+    res.status(201).json({
+      success: true,
+      user: {
+        id: user._id,
+        role: user.role,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        bitnobCustomerId: user.bitnobCustomerId,
+      },
+      token, // optional: you can also send it in the body
     });
   } catch (error) {
     next(error);
@@ -112,7 +168,10 @@ exports.getCustomer = async (req, res, next) => {
       customer: response.data.data,
     });
   } catch (err) {
-    console.error("Error fetching customer:", err.response?.data || err.message);
+    console.error(
+      "Error fetching customer:",
+      err.response?.data || err.message
+    );
     return res.status(500).json({
       success: false,
       message: "Failed to fetch customer",
@@ -120,7 +179,6 @@ exports.getCustomer = async (req, res, next) => {
     });
   }
 };
-
 
 // ✅ Update Customer Controller
 exports.updateCustomer = async (req, res, next) => {
@@ -143,7 +201,10 @@ exports.updateCustomer = async (req, res, next) => {
       customer: response.data.data,
     });
   } catch (err) {
-    console.error("Error updating customer:", err.response?.data || err.message);
+    console.error(
+      "Error updating customer:",
+      err.response?.data || err.message
+    );
     return res.status(500).json({
       success: false,
       message: "Failed to update customer",
@@ -164,7 +225,10 @@ exports.listCustomers = async (req, res, next) => {
       meta: response.data.data.meta || null, // Bitnob includes pagination meta sometimes
     });
   } catch (err) {
-    console.error("Error listing customers:", err.response?.data || err.message);
+    console.error(
+      "Error listing customers:",
+      err.response?.data || err.message
+    );
     return res.status(500).json({
       success: false,
       message: "Failed to fetch customers",

@@ -7,7 +7,7 @@ router.post("/register",  registerUser);
 router.post("/login", loginUser);
 router.get("/:id", protect, getCustomer);
 router.put("/customer/:id", protect, updateCustomer); // 👈 update route
-router.get("/", listCustomers);
+router.get("/", protect, adminOnly, listCustomers);
 
 
 
